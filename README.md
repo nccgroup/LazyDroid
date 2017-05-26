@@ -51,12 +51,12 @@ $ ./lazydroid.sh
     * Lazydroid compares two folders and extract the diff among them in a pretty format.
 * Compare two different snapshots
     * Lazydroid compares two folders and extract the diff among them in a pretty format to find new files or folders, file modifications or deleted files.
-![Compare two snapshots](https://git.pentest.ngs/daniel.martinez/LazyDroid/raw/master/media/compare.png "Compare two snapshots")
+![Compare two snapshots](https://github.com/nccgroup/LazyDroid/blob/master/media/compare.png "Compare two snapshots")
 
 * Insert Frida gadget in the APK
     * Lazydroid auto-detects the architecture of your device and insert the Frida Agent in the application to facilitate the app instrumentation (useful in non-rooted devices).
-![Demo Frida](https://git.pentest.ngs/daniel.martinez/LazyDroid/raw/master/media/DemoFrida.png "Demo Frida")
-[Check the video](https://git.pentest.ngs/daniel.martinez/LazyDroid/raw/master/media/DemoFrida.mp4)
+![Demo Frida](https://github.com/nccgroup/LazyDroid/blob/master/media/DemoFrida.png "Demo Frida")
+[Check the video](https://github.com/nccgroup/LazyDroid/blob/master/media/DemoFrida.mp4)
 
 
 ### Colaborate and help
