@@ -1,6 +1,6 @@
 # Lazydroid 0.4 by Dani Martinez (@dan1t0)
 
-![Lazydroid](https://git.pentest.ngs/daniel.martinez/LazyDroid/raw/master/media/tool.png "Lazydroid")
+![Lazydroid](https://github.com/nccgroup/LazyDroid/blob/master/media/tool.png "Lazydroid")
 
 Lazydroid is a tool written as a bash script to facilitate some aspects of an Android Assessment. It provides some common tasks such as:
   - Set the debug flag of an application to true
