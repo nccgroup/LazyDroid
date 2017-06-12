@@ -688,7 +688,8 @@ EOF
         mv ${file_to_patch}.1 ${file_to_patch}
 
         echo -n "---> Injecting the shared libraries..."
-        cp -r frida_libs/${arch} ${APK_DIR}/lib/
+        mkdir -p ${APK_DIR}/lib/
+	cp -r frida_libs/${arch}/ ${APK_DIR}/lib/
         echo " DONE"
         echo ""
 
