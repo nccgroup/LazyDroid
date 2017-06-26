@@ -15,9 +15,8 @@ AAPT="aapt"
 KEYSTORE="keystore.key"
 KEYALIAS="danito"
 
+MYSHELL="gnome-terminal"
 #######################
-
-MYSHELL="x-terminal-emulator"
 
 RED='\033[0;31m'
 NC='\033[0m'
