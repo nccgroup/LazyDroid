@@ -253,7 +253,7 @@ function smartLog {
                     echo  "Log stored on '${FOLDER}/${packageName}_${DATE}.log'"
                     echo -n "Press Enter to continue... "
                     read kk
-                    ${MYSHELL} -e "${ADB} logcat | grep ${PIDD_} | tee -a "${FOLDER}/${packageName}_${DATE}.log"" &
+                    ${MYSHELL} -e "${ADB} logcat | grep ${PIDD_} | tee -a ${FOLDER}/${packageName}_${DATE}.log" &
                 fi
             else
                 PIDD_="$(cat /tmp/pids | awk '{print $2}')"
@@ -262,7 +262,7 @@ function smartLog {
                 echo "Log stored on '${FOLDER}/${packageName}_${DATE}.log'"
                 echo -n "Press Enter to continue... "
                 read kk
-                ${MYSHELL} -e "${ADB} logcat | grep ${PIDD_} | tee -a "${FOLDER}/${packageName}_${DATE}.log"" &
+                ${MYSHELL} -e "${ADB} logcat | grep ${PIDD_} | tee -a ${FOLDER}/${packageName}_${DATE}.log" &
             fi
 
         fi
