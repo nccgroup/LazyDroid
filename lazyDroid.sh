@@ -1,5 +1,5 @@
-#!/bin/bash
-# lazzyDroid
+#!/usr/bin/env bash
+# lazyDroid
 # 2017 By Dani Martinez (@dan1t0) / NCCGroup
 
 VERSION="0.4"
@@ -15,7 +15,7 @@ AAPT="aapt"
 KEYSTORE="keystore.key"
 KEYALIAS="danito"
 
-MYSHELL="gnome-terminal"
+MYSHELL="x-terminal-emulator"
 #######################
 
 
@@ -216,7 +216,7 @@ function set_something {
 function smartLog {
     echo -n "Execute the app and enter the name: "
     read packageName
-    ${ADB} shell "ps | grep $packageName" > /tmp/pids
+    ${ADB} shell ps | grep $packageName > /tmp/pids
     PIDS="$(wc -l /tmp/pids | cut -d" " -f1)"
     DATE=$(date +"%Y%m%d%H%M%S")
     FOLDER=$PWD
@@ -253,7 +253,7 @@ function smartLog {
                     echo  "Log stored on '${FOLDER}/${packageName}_${DATE}.log'"
                     echo -n "Press Enter to continue... "
                     read kk
-                    ${MYSHELL} -e "${ADB} logcat | grep ${PIDD_} | tee -a "${FOLDER}/${packageName}_${DATE}.log"" &
+                    ${MYSHELL} -e "${ADB} logcat | grep ${PIDD_} | tee -a ${FOLDER}/${packageName}_${DATE}.log" &
                 fi
             else
                 PIDD_="$(cat /tmp/pids | awk '{print $2}')"
@@ -262,7 +262,7 @@ function smartLog {
                 echo "Log stored on '${FOLDER}/${packageName}_${DATE}.log'"
                 echo -n "Press Enter to continue... "
                 read kk
-                ${MYSHELL} -e "${ADB} logcat | grep ${PIDD_} | tee -a "${FOLDER}/${packageName}_${DATE}.log"" &
+                ${MYSHELL} -e "${ADB} logcat | grep ${PIDD_} | tee -a ${FOLDER}/${packageName}_${DATE}.log" &
             fi
 
         fi
@@ -688,7 +688,8 @@ EOF
         mv ${file_to_patch}.1 ${file_to_patch}
 
         echo -n "---> Injecting the shared libraries..."
-        cp -r frida_libs/${arch} ${APK_DIR}/lib/
+        mkdir -p ${APK_DIR}/lib/
+	cp -r frida_libs/${arch}/ ${APK_DIR}/lib/
         echo " DONE"
         echo ""
 
