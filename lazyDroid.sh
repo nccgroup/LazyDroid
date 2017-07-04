@@ -15,7 +15,7 @@ AAPT="aapt"
 KEYSTORE="keystore.key"
 KEYALIAS="danito"
 
-MYSHELL="x-terminal-emulator"
+MYSHELL="gnome-terminal"
 #######################
 
 
