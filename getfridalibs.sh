@@ -3,7 +3,7 @@
 echo -n "Geting Frida libs from the repo... "
 wget -qO - https://github.com/frida/frida/releases/latest | grep -o "\/frida\/frida\/releases\/download\/.*\/frida-gadget-.*-android-.*\.so\.xz" | sed 's/\/frida\/frida/https:\/\/github\.com\/frida\/frida/g' | sed 's/%0A/\n/g' > list.txt
 wget -q -i list.txt
-echo "DONE"
+echo "Done"
 unxz *.xz
 
 
@@ -28,6 +28,6 @@ rm -rf *.so
 cd ..
 
 
-find . -name ".DS_*" -type f -delete
-find . -name "*~*" -type f -delete
+find . -name ".DS_*" -type f -delete 2>/dev/null
+find . -name "*~*" -type f -delete 2>/dev/null
 rm -rf list.txt
