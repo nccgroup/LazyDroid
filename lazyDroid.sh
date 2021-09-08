@@ -90,15 +90,15 @@ function build {
             [yY])
                 rm -r ${1}
                 echo -n "Folder deleted! Press Enter to continue... "
+                read kk
                 ;;
             *)
                 :
-        esac
+            esac
         else
             echo "---> Something was wrong trying to build the apk. Press Enter to continue"
         fi
     fi
-    read kk
 }
 
 function build2 {
@@ -580,9 +580,7 @@ EOF
     echo -n "---> Injecting the shared libraries..."
 
     mkdir -p ${APK_DIR}/lib/
-    ls frida_libs | while read arch; do
-        cp -r frida_libs/${arch}/ ${APK_DIR}/lib/
-    done
+    cp -r frida_libs/* ${APK_DIR}/lib/
 
     echo " DONE"
     echo ""
