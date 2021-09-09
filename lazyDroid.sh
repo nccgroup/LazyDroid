@@ -97,6 +97,7 @@ function build {
             esac
         else
             echo "---> Something was wrong trying to build the apk. Press Enter to continue"
+            read kk
         fi
     fi
 }
