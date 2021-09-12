@@ -50,7 +50,6 @@ function sign {
         echo "---> Something was wrong trying to sign the app. Press Enter to continue"
         rm ${NEW_APK}
     fi
-    read kk
 }
 
 function sign2 {
@@ -72,7 +71,7 @@ function install {
         ;;
     *)
         :
-esac
+    esac
 }
 
 function build {
@@ -91,15 +90,16 @@ function build {
             [yY])
                 rm -r ${1}
                 echo -n "Folder deleted! Press Enter to continue... "
+                read kk
                 ;;
             *)
                 :
-        esac
+            esac
         else
             echo "---> Something was wrong trying to build the apk. Press Enter to continue"
+            read kk
         fi
     fi
-    read kk
 }
 
 function build2 {
@@ -500,75 +500,48 @@ function frida_lib {
         return
     fi
 
-    echo -e "\nWhat architecture is running on your device?"
-    echo " 1) arm64"
-    echo " 2) arm64-v8a"
-    echo " 3) armeabi"
-    echo " 4) armeabi-v7a"
-    echo " 5) x86_64"
-    echo " 6) x86"
-    echo -e " 7) Try to detect this via ADB\n"
-    echo -n "Select an option: "
-    read opt
-    echo ""
+    echo -n "Select the APK to inject the frida gadget: "
+    read APK
+    checkfile "${APK}"
 
-    OPTS=(arm64 arm64-v8a armeabi armeabi-v7a x86_64 x86)
-
-    if [ "$opt" -ge 1 -a "$opt" -le 6 ]; then
-        arch=${OPTS[$((opt-1))]}
-
-    elif [ "$opt" -eq 7 ]; then
-        echo -n "Trying to extract the info from ADB... "
-        arch=$(${ADB} shell "getprop ro.product.cpu.abi" | tr -d '\r')
-        brand=$(${ADB} shell "getprop ro.product.brand" | tr -d '\r')
-        model=$(${ADB} shell "getprop ro.product.model" | tr -d '\r')
-        echo "${brand} ${model} ${arch}"
-    else
-        echo -n "Invalid option, press Enter to continue... "
+    package=$(aapt dump badging ${APK} | grep "^package: name=" | cut -f 2 -d "'")
+    if [ -z "$package" ]; then
+        echo "---> ERROR: Can't get package name from APK"
         read kk
         return
     fi
+    echo -e "\n---> Package: ${package}"
 
-    echo -n "Architecture: ${arch}. Is it correct? [y/n] "
-    read kk
-    case "$kk" in
-    [yY])
-        echo -n "Select the APK to inject the frida gadget: "
-        read APK
-        checkfile "${APK}"
+    launchable_activity=$(aapt dump badging ${APK} | grep "^launchable-activity: name=" | cut -f 2 -d "'")
+    if [ -z "$launchable_activity" ]; then
+        echo "---> ERROR: Can't get main activity"
+        read kk
+        return
+    fi
+    echo "---> Launchable-activity: $launchable_activity"
 
-        package=$(aapt dump badging ${APK} |grep "^package: name=" |cut -f 2 -d "'")
-        if [ -z "$package" ]; then
-            echo "---> ERROR: Can't get package name from APK"
-            read kk
-            return
-        fi
-        echo -e "\n---> Package: ${package}"
+    echo -n "---> Unpacking ${APK}... "
+    APK_DIR=$(sed 's/.apk//I' <<< $APK)
+    ${APKTOOL} d -f ${APK} -o ${APK_DIR}> /dev/null
+    echo "---> DONE"
 
-        launchable_activity=$(aapt dump badging ${APK}  |grep "^launchable-activity: name=" |cut -f 2 -d "'")
-        if [ -z "$launchable_activity" ]; then
-            echo "---> ERROR: Can't get main activity"
-            read kk
-            return
-        fi
-        echo "---> Launchable-activity: $launchable_activity"
+    aapt dump permissions ${APK} | grep -i "'android.permission.INTERNET'" >/dev/null
+    if [ $? != 0 ]; then
+        echo "---> Injecting android.permission.INTERNET"
+        awk '/<manifest / { print; print "<uses-permission android:name=\"android.permission.INTERNET\"/>"; next }1' ${APK_DIR}/AndroidManifest.xml > ${APK_DIR}/AndroidManifest.xml.1
+        mv ${APK_DIR}/AndroidManifest.xml.1 ${APK_DIR}/AndroidManifest.xml
+    else
+        echo "---> Already has INTERNET permission"
+    fi
 
-        echo -n "---> Unpacking ${APK}... "
-        APK_DIR=$(sed 's/.apk//I' <<< $APK)
-        ${APKTOOL} d -f ${APK} -o ${APK_DIR}> /dev/null
-        echo "---> DONE"
+    activity_path=$(echo ${launchable_activity} | sed -e "s:\.:/:g")
+    readarray -d '' files_to_patch < <(find ${APK_DIR}/*/${activity_path}.smali -print0 2>/dev/null)
+    if [ "${#files_to_patch[@]}" -eq "0"  ]; then
+        echo "---> Failed to find the Main Activity file path"
+        exit
+    fi
 
-        aapt dump permissions ${APK} |grep -i "'android.permission.INTERNET'" >/dev/null
-        if [ $? != 0 ]; then
-            echo "---> Injecting android.permission.INTERNET"
-            awk '/<manifest / { print; print "<uses-permission android:name=\"android.permission.INTERNET\"/>"; next }1' ${APK_DIR}/AndroidManifest.xml > ${APK_DIR}/AndroidManifest.xml.1
-            mv ${APK_DIR}/AndroidManifest.xml.1 ${APK_DIR}/AndroidManifest.xml
-        else
-            echo "---> Already has INTERNET permission"
-        fi
-
-        activity_path=$(echo ${launchable_activity} |sed -e "s:\.:/:g")
-        file_to_patch="${APK_DIR}/smali/${activity_path}.smali"
+    for file_to_patch in ${files_to_patch[@]}; do
 
         if [ ! -f "${file_to_patch}" ]; then
             echo "---> ERROR: Can't find file ${file_to_patch}"
@@ -578,11 +551,11 @@ function frida_lib {
 
         echo "---> Patching ${file_to_patch}"
 
-        line=$(cat ${file_to_patch} |grep -n "^# .*methods$" |head -n 1 |cut -f 1 -d ":")
+        line=$(cat ${file_to_patch} | grep -n "^# .*methods$" | head -n 1 | cut -f 1 -d ":")
         if [ -z "$line" ]; then
             echo "ERROR: Can't find line to patch"
             read kk
-	    return
+            return
         fi
 
         head -n ${line} ${file_to_patch} > ${file_to_patch}.1
@@ -599,49 +572,47 @@ function frida_lib {
         .end method
 EOF
 
-        lines=$(cat ${file_to_patch} |wc -l)
+        lines=$(cat ${file_to_patch} | wc -l)
         count=$(( $lines - $line ))
         tail -n ${count} ${file_to_patch} >> ${file_to_patch}.1
         mv ${file_to_patch}.1 ${file_to_patch}
+    done
 
-        echo -n "---> Injecting the shared libraries..."
+    echo -n "---> Injecting the shared libraries..."
 
-        mkdir -p ${APK_DIR}/lib/
-	      cp -r frida_libs/${arch}/ ${APK_DIR}/lib/
-        echo " DONE"
-        echo ""
+    mkdir -p ${APK_DIR}/lib/
+    cp -r frida_libs/* ${APK_DIR}/lib/
 
-        build "${APK_DIR}" "${APK_DIR}_frida.apk"
+    echo " DONE"
+    echo ""
 
-        if [ ! -f "${APK_DIR}_frida.apk" ]; then
-            echo "---> ERROR: failed to rebuild the patched APK"
-            read kk
-            return
-        fi
-        echo "---> Patched APK: ${APK_DIR}_frida.apk"
+    build "${APK_DIR}" "${APK_DIR}_frida.apk"
 
-        sign "${APK_DIR}_frida.apk"
-
-        echo -e "\n---> Now execute the APK and run 'frida -U Gadget' or ..."
-        echo -n "Do you want to launch the app and the frida agent? [y/n] "
-        read resp
-
-        case "$resp" in
-        [yY])
-            adb shell "am start -n ${package}/${launchable_activity}"
-            sleep 2
-            ${MYSHELL} -e "frida -U Gadget" &
-            ;;
-        *)
-            :
-        esac
-
-        echo -n "---> Press enter to continue "
+    if [ ! -f "${APK_DIR}_frida.apk" ]; then
+        echo "---> ERROR: failed to rebuild the patched APK"
         read kk
+        return
+    fi
+    echo "---> Patched APK: ${APK_DIR}_frida.apk"
+
+    sign "${APK_DIR}_frida.apk"
+
+    echo -e "\n---> Now execute the APK and run 'frida -U Gadget' or ..."
+    echo -n "Do you want to launch the app and the frida agent? [y/n] "
+    read resp
+
+    case "$resp" in
+    [yY])
+        adb shell "am start -n ${package}/${launchable_activity}"
+        sleep 2
+        ${MYSHELL} -e "frida -U Gadget" &
         ;;
     *)
         :
     esac
+
+    echo -n "---> Press enter to continue "
+    read kk
 }
 
 function menu {
